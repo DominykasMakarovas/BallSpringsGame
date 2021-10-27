@@ -7,8 +7,6 @@ using Cursor = UnityEngine.Cursor;
 
 public class Pawn : MonoBehaviour
 {
-    [SerializeField] private int health;
-    [SerializeField] private int damage;
     [SerializeField] private int velocity;
     [SerializeField] private GameObject indicatorPosition;
     [SerializeField] private GameObject indicator;
@@ -16,19 +14,18 @@ public class Pawn : MonoBehaviour
     private Rigidbody rb;
     private Vector3 mousePressDownPos;
     private Vector3 mouseReleasePos;
-    private bool isShooting;
     private GameObject arrow;
 
     private void Start()
     {
+        Cursor.visible = true;
         rb = GetComponent<Rigidbody>();
     }
 
     private void OnMouseDown()
     {
         mousePressDownPos = Input.mousePosition;
-        arrow = Instantiate(indicator, indicatorPosition.transform.position, Quaternion.identity);
-        arrow.transform.parent = gameObject.transform;
+        arrow = Instantiate(indicator, gameObject.transform);
     }
 
     private void OnMouseUp()
@@ -43,11 +40,12 @@ public class Pawn : MonoBehaviour
         rb.AddForce(new Vector3(force.x, 0, force.y).normalized * velocity);
     }
 
-    private void OnCollisionEnter(Collision other)
+    private void Update()
     {
-        if (other.collider.CompareTag("Enemy"))
-        {
-           other.gameObject.GetComponent<Enemy>().dealDamage(damage);
-        }
+        var startPos = new Vector3(mousePressDownPos.x, 0, mousePressDownPos.y);
+        var endPos = new Vector3(Input.mousePosition.x, 0, Input.mousePosition.y);
+        var dir = (startPos - endPos).normalized;
+        var toRotation = Quaternion.LookRotation(dir, Vector3.up);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, toRotation, 1000f * Time.deltaTime);
     }
 }
